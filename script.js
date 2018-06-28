@@ -198,7 +198,6 @@ trainingData.images[trainingData.images.length - 1].onload = function () {
 	}
 
 	function train() {
-		// for (var i = 0; i < 10; i ++) {
 		console.log("1-" + tf.memory().numTensors);
 		const printLoss = calculateLoss();
 		printLoss.print();
@@ -211,9 +210,17 @@ trainingData.images[trainingData.images.length - 1].onload = function () {
 		const output =
 		tf.tidy(
 			() => {
-				var output = limitPixels(decoder.model.predict(encoder.model.predict(tf.tensor([trainingData.pixels[index]]).mul(pixelMul))));
-				// spread this line out
-				output.dtype = "int32";
+				var output = limitPixels(
+					decoder.model.predict(
+						encoder.model.predict(
+							tf.tensor(
+								[trainingData.pixels[index]]
+							)
+							.mul(pixelMul)
+						)
+					)
+				);
+				// output.dtype = "int32";
 				return output;
 			}
 		);
@@ -240,7 +247,6 @@ trainingData.images[trainingData.images.length - 1].onload = function () {
 		// console.log("5-" + tf.memory().numTensors);
 	}
 	var interval = window.setInterval(train, 100);
-	//await delays
 }
 for (var i = 0; i < trainingImages; i ++) {
 	// trainingData.images[i].src = "../../Image Sharpening/Feedforward/Training Data/Original/" + (i + 1) + ".jpg";
