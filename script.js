@@ -179,8 +179,8 @@ trainingData.images[trainingData.images.length - 1].onload = function () {
 		}
 		return tf.tensor(values, [imageSize, imageSize, 3], "int32");
 	}
+	// tf.clipByValue();
 
-	//tidy
 	const canvases = [];
 	const min = encoder.model.predict(trainingData.tensor).min().dataSync()[0];
 	const max = encoder.model.predict(trainingData.tensor).max().dataSync()[0];
@@ -198,38 +198,49 @@ trainingData.images[trainingData.images.length - 1].onload = function () {
 	}
 
 	function train() {
-		console.log("1-" + tf.memory().numTensors);
+		console.log(tf.memory());
+		// Use tidy
 		const printLoss = calculateLoss();
 		printLoss.print();
 		printLoss.dispose();
-		//use tidy ^
-		console.log("2-" + tf.memory().numTensors);
-		optimizer.minimize(calculateLoss);
 
+		optimizer.minimize(calculateLoss);
 		// All this is just display code
 		const output =
 		tf.tidy(
 			() => {
-				var output = limitPixels(
-					decoder.model.predict(
-						encoder.model.predict(
-							tf.tensor(
-								[trainingData.pixels[index]]
-							)
-							.mul(pixelMul)
+				// Decode the low-dimensional representation of the input data created by the encoder
+				return decoder.model.predict(
+					// Create an encoded (low-dimensional) representation of the input data
+					encoder.model.predict(
+						tf.tensor(
+							[trainingData.pixels[index]]
 						)
+						// Multiply the input data tensor by the pixel coefficient
+						.mul(pixelMul)
 					)
-				);
-				// output.dtype = "int32";
-				return output;
+				)
+				.mul(pixelMul)
+				.clipByValue(0, 1)
+				.reshape(
+					[imageSize, imageSize, 3]
+				)
 			}
 		);
-		console.log("3-" + tf.memory().numTensors);
 		// output = output.round();
 //no errors! because we turned the errors off
-		//make this pretty
+
 		// Interestingly, limitPixels(output) cannot be placed inside the tf.tidy() when using ".then(output.dispose());"
-		tf.toPixels(output, canvas.output)//.then(output.dispose());
+		tf.toPixels(output, canvas.output).then(() => output.dispose());
+		// test.then(() => output.dispose());
+
+		// test.then(() => console.log(test))
+		// console.log(test);
+		// test.then(console.log(test));
+
+		//then(output.dispose());
+		// Use await
+		// Don't use tf.toPixels();
 
 		// tensor is disposed?
 		// console.log("4-" + tf.memory().numTensors);
