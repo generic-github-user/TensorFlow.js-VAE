@@ -1,5 +1,6 @@
 const imageSize = 16;
-const trainingImages = 46;
+const numTrainingImages = 46;
+const numCanvases = 2;
 
 const imageVolume = (imageSize ** 2) * 3;
 const pixelMul = tf.scalar(1 / 255);
@@ -22,16 +23,27 @@ canvas.output.height = imageSize;
 canvas.reconstruction.width = imageSize;
 canvas.reconstruction.height = imageSize;
 
+// Create thumbnail canvases to render randomly generated images
+// Create array to store thumbnail canvas elements
 const canvases = [];
-for (var i = 0; i < 2; i ++) {
+// Create a specified number of new canvases
+for (var i = 0; i < numCanvases; i ++) {
+	// Create a new HTML canvas element
 	var element = document.createElement("canvas");
+	// Add a corresponding id property to the canvas element
 	element.id = "canvas-" + i;
+	// Set the "thumbnail" CSS class for the new canvas
 	element.className = "thumbnail";
+	// Add the canvas element to the page body
 	document.body.appendChild(element);
+	// Add this canvas element to the canvases array
 	canvases.push({
+		// Select the canvas element by id and add it to the array
 		"canvas": document.getElementById("canvas-" + i),
-		"parameters": tf.randomNormal([1, 5], -10, 10)
+		// Add randomly generated latent space variables for this canvas
+		"variables": tf.randomNormal([1, 5], -10, 10)
 	});
+	// Add rendering context object for the canvas
 	canvases[i].context = canvases[i].canvas.getContext("2d");
 }
 
@@ -114,13 +126,13 @@ const trainingData = {
 	"images": [],
 	"pixels": []
 }
-for (var i = 0; i < trainingImages; i ++) {
+for (var i = 0; i < numTrainingImages; i ++) {
 	trainingData.images[i] = new Image(imageSize, imageSize);
 }
 
 trainingData.images[trainingData.images.length - 1].onload = function () {
 	var pixels;
-	for (var i = 0; i < trainingImages; i ++) {
+	for (var i = 0; i < numTrainingImages; i ++) {
 		pixels = tf.fromPixels(trainingData.images[i], 3);
 		pixels = tf.image.resizeBilinear(pixels, [imageSize, imageSize]);
 		pixels = pixels.dataSync();
@@ -161,7 +173,7 @@ trainingData.images[trainingData.images.length - 1].onload = function () {
 		document.body.appendChild(element);
 		canvases.push({
 			"canvas": document.getElementById("canvas-" + i),
-			"parameters": tf.randomUniform([1, 5], min, max)
+			"variables": tf.randomUniform([1, 5], min, max)
 		});
 		canvases[i].context = canvases[i].canvas.getContext("2d");
 	}
@@ -203,7 +215,7 @@ trainingData.images[trainingData.images.length - 1].onload = function () {
 			const output_ =
 			tf.tidy(
 				() => {
-					return decoder.model.predict(canvases[i].parameters)
+					return decoder.model.predict(canvases[i].variables)
 					.mul(pixelMul)
 					.clipByValue(0, 1)
 					.reshape(
@@ -216,6 +228,6 @@ trainingData.images[trainingData.images.length - 1].onload = function () {
 	}
 	var interval = window.setInterval(train, 100);
 }
-for (var i = 0; i < trainingImages; i ++) {
+for (var i = 0; i < numTrainingImages; i ++) {
 	trainingData.images[i].src = "./Training Data/Characters/" + (i + 1) + ".png";
 }
