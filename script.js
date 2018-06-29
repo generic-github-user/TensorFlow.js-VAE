@@ -238,24 +238,24 @@ trainingData.images[trainingData.images.length - 1].onload = function () {
 		// console.log(test);
 		// test.then(console.log(test));
 
-		//then(output.dispose());
 		// Use await
 		// Don't use tf.toPixels();
 
 		// tensor is disposed?
-		// console.log("4-" + tf.memory().numTensors);
-		// for (var i = 0; i < canvases.length; i ++) {
-		// 	const output_ =
-		// 	tf.tidy(
-		// 		() => {
-		// 			var output_ = decoder.model.predict(canvases[i].parameters).reshape([imageSize, imageSize, 3]);
-		// 			output_.dtype = "int32";
-		// 			return output_;
-		// 		}
-		// 	);
-		// 	tf.toPixels(limitPixels(output_), canvases[i].canvas).then(output_.dispose());
-		// }
-		// console.log("5-" + tf.memory().numTensors);
+		for (var i = 0; i < canvases.length; i ++) {
+			const output_ =
+			tf.tidy(
+				() => {
+					return decoder.model.predict(canvases[i].parameters)
+					.mul(pixelMul)
+					.clipByValue(0, 1)
+					.reshape(
+						[imageSize, imageSize, 3]
+					);
+				}
+			);
+			tf.toPixels(output_, canvases[i].canvas).then(() => output_.dispose());
+		}
 	}
 	var interval = window.setInterval(train, 100);
 }
@@ -263,4 +263,3 @@ for (var i = 0; i < trainingImages; i ++) {
 	// trainingData.images[i].src = "../../Image Sharpening/Feedforward/Training Data/Original/" + (i + 1) + ".jpg";
 	trainingData.images[i].src = "./Training Data/Characters/" + (i + 1) + ".png";
 }
-//reorganize neural nets
