@@ -1,8 +1,15 @@
+// Define settings for variational autoencoder
+// Size of input and output images in pixels (width and height)
 const imageSize = 16;
+// Number of images to use when training the neural network
 const numTrainingImages = 46;
+// Number of thumbnail canvases to display randomly generated images on
 const numCanvases = 2;
 
+// Automatically generated settings and parameters
+// Volume of image data, calculated by squaring imageSize to find the area of the image (total number of pixels) and multiplying by three for each color channel (RGB)
 const imageVolume = (imageSize ** 2) * 3;
+// Value to multiply pixels by to scale values from 0 - 255 to 0 - 1
 const pixelMul = tf.scalar(1 / 255);
 
 canvas = {
@@ -22,31 +29,6 @@ canvas.output.width = imageSize;
 canvas.output.height = imageSize;
 canvas.reconstruction.width = imageSize;
 canvas.reconstruction.height = imageSize;
-
-// Create thumbnail canvases to render randomly generated images
-// Create array to store thumbnail canvas elements
-const canvases = [];
-// Create a specified number of new canvases
-for (var i = 0; i < numCanvases; i ++) {
-	// Create a new HTML canvas element
-	var element = document.createElement("canvas");
-	// Add a corresponding id property to the canvas element
-	element.id = "canvas-" + i;
-	// Set the "thumbnail" CSS class for the new canvas
-	element.className = "thumbnail";
-	// Add the canvas element to the page body
-	document.body.appendChild(element);
-	// Add this canvas element to the canvases array
-	canvases.push({
-		// Select the canvas element by id and add it to the array
-		"canvas": document.getElementById("canvas-" + i),
-		// Add randomly generated latent space variables for this canvas
-		"variables": tf.randomNormal([1, 5], -10, 10)
-	});
-	// Add rendering context object for the canvas
-	canvases[i].context = canvases[i].canvas.getContext("2d");
-}
-
 
 const encoder = {
 	input: tf.input({shape: imageVolume}),
@@ -122,11 +104,17 @@ const calculateLoss =
 	}
 );
 
+// Create object to store training data in image, pixel, and tensor format
 const trainingData = {
+	// Store training data image elements
 	"images": [],
+	// Store training data as raw arrays of pixel data
 	"pixels": []
 }
+// Add training data to trainingData.images array as an HTML image element
+// Loop through each training image
 for (var i = 0; i < numTrainingImages; i ++) {
+	// Create a new HTML image element with the specified dimensions and set current array index to this element (array.push does not work here)
 	trainingData.images[i] = new Image(imageSize, imageSize);
 }
 
@@ -163,18 +151,29 @@ trainingData.images[trainingData.images.length - 1].onload = function () {
 		return tf.tensor(values, [imageSize, imageSize, 3], "int32");
 	}
 
+	// Create thumbnail canvases to render randomly generated images
+	// Create array to store thumbnail canvas elements
 	const canvases = [];
 	const min = encoder.model.predict(trainingData.tensor).min().dataSync()[0];
 	const max = encoder.model.predict(trainingData.tensor).max().dataSync()[0];
-	for (var i = 0; i < 4; i ++) {
+	// Create a specified number of new canvases
+	for (var i = 0; i < numCanvases; i ++) {
+		// Create a new HTML canvas element
 		var element = document.createElement("canvas");
+		// Add a corresponding id property to the canvas element
 		element.id = "canvas-" + i;
+		// Set the "thumbnail" CSS class for the new canvas
 		element.className = "thumbnail";
+		// Add the canvas element to the page body
 		document.body.appendChild(element);
+		// Add this canvas element to the canvases array
 		canvases.push({
+			// Select the canvas element by id and add it to the array
 			"canvas": document.getElementById("canvas-" + i),
-			"variables": tf.randomUniform([1, 5], min, max)
+			// Add randomly generated latent space variables for this canvas
+			"variables": tf.randomNormal([1, 5], -10, 10)
 		});
+		// Add rendering context object for the canvas
 		canvases[i].context = canvases[i].canvas.getContext("2d");
 	}
 
