@@ -3,7 +3,6 @@ const trainingImages = 46;
 
 const imageVolume = (imageSize ** 2) * 3;
 const pixelMul = tf.scalar(1 / 255);
-// const layerSizes = [1, 2, 4, 8, 4, 2, 1];
 
 canvas = {
 	"input": document.getElementById("inputCanvas"),
@@ -15,33 +14,27 @@ context = {
 	"output": canvas.output.getContext("2d"),
 	"reconstruction": canvas.reconstruction.getContext("2d")
 }
-//pixel value floats or ints
+
 canvas.input.width = imageSize;
 canvas.input.height = imageSize;
 canvas.output.width = imageSize;
 canvas.output.height = imageSize;
 canvas.reconstruction.width = imageSize;
 canvas.reconstruction.height = imageSize;
-//get random value limits from hidden layer
+
 const canvases = [];
 for (var i = 0; i < 2; i ++) {
 	var element = document.createElement("canvas");
 	element.id = "canvas-" + i;
 	element.className = "thumbnail";
 	document.body.appendChild(element);
-	// document.body.innerHTML += "<canvas id='canvas-" + i + "' width='256' height='256'></canvas>";
 	canvases.push({
 		"canvas": document.getElementById("canvas-" + i),
 		"parameters": tf.randomNormal([1, 5], -10, 10)
 	});
 	canvases[i].context = canvases[i].canvas.getContext("2d");
 }
-// best layer size ratios
-//reduce weight values
-//wait for optimizer to escape local minimum
-//crop images
-//yeah, I shouldn't start any new projects
-//trainingData.tensor.matMul(encoder.weights[0]).add(encoder.biases[0].matMul(encoder.weights[0])).tanh().print()
+
 
 const encoder = {
 	input: tf.input({shape: imageVolume}),
@@ -78,7 +71,6 @@ decoder.output = tf.layers.dense({units: imageVolume}).apply(
 		)
 	)
 );
-//this may not have been happening within the *model*
 
 encoder.model = tf.model(
 	{
@@ -93,32 +85,13 @@ decoder.model = tf.model(
 	}
 );
 
-//has died
-//1-line JSON
-//over-tanh-ing
-//lots of tweaking
-//just add biases - let the optimizer figure it out
-//hidden layer activation function
-//flowcharts
-//add the biases before applying the activation function
-
 //
 // Define loss function for neural network training: Mean squared error
 loss = (input, output) => input.sub(output).square().mean();
 // Learning rate for optimization algorithm
-// const learningRate = 0.000001;
 const learningRate = 0.001;
 // Optimization function for training neural networks
-// optimizer = tf.train.momentum(learningRate, 0.9);
 optimizer = tf.train.adam(learningRate);
-// optimizer = tf.train.momentum(learningRate, 0.1);
-// optimizer = tf.train.rmsprop(learningRate);
-//just look everything up
-//shuffle training data
-//optimizer?
-//4-dimensional convolutions
-//does sgd work?
-//local minimum for a while?
 
 // Loss calculation function for variational autoencoder neural network
 const calculateLoss =
@@ -136,8 +109,7 @@ const calculateLoss =
 		);
 	}
 );
-//pixelmul
-//variable names
+
 const trainingData = {
 	"images": [],
 	"pixels": []
@@ -164,8 +136,7 @@ trainingData.images[trainingData.images.length - 1].onload = function () {
 
 	const input = tf.tensor(trainingData.pixels[index], [imageSize, imageSize, 3]);
 	input.dtype = "int32";
-	tf.toPixels(input, canvas.input);
-	//input.dispose();
+	tf.toPixels(input, canvas.input).then(() => input.dispose());
 
 	function limitPixels(pixels) {
 		var values = pixels.dataSync();
@@ -179,7 +150,6 @@ trainingData.images[trainingData.images.length - 1].onload = function () {
 		}
 		return tf.tensor(values, [imageSize, imageSize, 3], "int32");
 	}
-	// tf.clipByValue();
 
 	const canvases = [];
 	const min = encoder.model.predict(trainingData.tensor).min().dataSync()[0];
@@ -189,7 +159,6 @@ trainingData.images[trainingData.images.length - 1].onload = function () {
 		element.id = "canvas-" + i;
 		element.className = "thumbnail";
 		document.body.appendChild(element);
-		// document.body.innerHTML += "<canvas id='canvas-" + i + "' width='256' height='256'></canvas>";
 		canvases.push({
 			"canvas": document.getElementById("canvas-" + i),
 			"parameters": tf.randomUniform([1, 5], min, max)
@@ -227,21 +196,9 @@ trainingData.images[trainingData.images.length - 1].onload = function () {
 				)
 			}
 		);
-		// output = output.round();
-//no errors! because we turned the errors off
 
-		// Interestingly, limitPixels(output) cannot be placed inside the tf.tidy() when using ".then(output.dispose());"
 		tf.toPixels(output, canvas.output).then(() => output.dispose());
-		// test.then(() => output.dispose());
 
-		// test.then(() => console.log(test))
-		// console.log(test);
-		// test.then(console.log(test));
-
-		// Use await
-		// Don't use tf.toPixels();
-
-		// tensor is disposed?
 		for (var i = 0; i < canvases.length; i ++) {
 			const output_ =
 			tf.tidy(
@@ -260,6 +217,5 @@ trainingData.images[trainingData.images.length - 1].onload = function () {
 	var interval = window.setInterval(train, 100);
 }
 for (var i = 0; i < trainingImages; i ++) {
-	// trainingData.images[i].src = "../../Image Sharpening/Feedforward/Training Data/Original/" + (i + 1) + ".jpg";
 	trainingData.images[i].src = "./Training Data/Characters/" + (i + 1) + ".png";
 }
