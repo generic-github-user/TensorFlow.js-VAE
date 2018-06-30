@@ -89,21 +89,18 @@ optimizer = tf.train.adam(learningRate);
 
 // Loss calculation function for variational autoencoder neural network
 const calculateLoss =
-// Wrap loss calculation function in a tf.tidy so that intermediate tensors are disposed of when the calculation is finished
 () => tf.tidy(
-	// Calculate loss
 	() => {
-		// return tf.add(
-			// Evaluate the loss function given the output of the autoencoder network and the actual image
+		return tf.add(
 			loss(
 				decoder.model.predict(encoder.model.predict(trainingData.tensor.mul(pixelMul))),
 				trainingData.tensor
+			),
+			loss(
+				encoder.model.predict(trainingData.tensor.mul(pixelMul)),
+				tf.randomNormal([5])
 			)
-			// loss(
-			// 	encoder.model.predict(trainingData.tensor.mul(pixelMul)),
-			// 	tf.randomNormal([5])
-			// )
-		// );
+		);
 	}
 );
 
@@ -121,9 +118,7 @@ for (var i = 0; i < numTrainingImages; i ++) {
 	trainingData.images[i] = new Image(imageSize, imageSize);
 }
 
-// Wait for images (training data) to load before continuing
 trainingData.images[trainingData.images.length - 1].onload = function () {
-
 	var pixels;
 	for (var i = 0; i < numTrainingImages; i ++) {
 		pixels = tf.fromPixels(trainingData.images[i], 3);
@@ -137,31 +132,22 @@ trainingData.images[trainingData.images.length - 1].onload = function () {
 
 	trainingData.tensor = tf.tensor(trainingData.pixels);
 
-	// Pick a random image from the training data to test the network on
 	var index = Math.floor(Math.random() * trainingData.pixels.length);
 
 	const input = tf.tensor(trainingData.pixels[index], [imageSize, imageSize, 3]);
 	input.dtype = "int32";
 	tf.toPixels(input, canvas.input).then(() => input.dispose());
 
-	// Function for limiting the pixel values of output images to a 0 - 255 range (outdated, replaced with clipByValue)
 	function limitPixels(pixels) {
-		// Get pixel values as an array from input tensor
 		var values = pixels.dataSync();
-		// Loop through each value
 		for (var i = 0; i < values.length; i ++) {
-			// Check if value is less than 0
 			if (values[i] < 0) {
-				// Set the value to 0
 				values[i] = 0;
 			}
-			// Check if value is greater than 255
 			else if (values[i] > 255) {
-				// Set the value to 255
 				values[i] = 255;
 			}
 		}
-		// Return the data as an image-formatted tensor with dtype of "int32"
 		return tf.tensor(values, [imageSize, imageSize, 3], "int32");
 	}
 
@@ -199,9 +185,7 @@ trainingData.images[trainingData.images.length - 1].onload = function () {
 		printLoss.dispose();
 
 		optimizer.minimize(calculateLoss);
-
 		// All this is just display code
-		// Calculate autoencoder output from original image
 		const output =
 		tf.tidy(
 			() => {
@@ -209,7 +193,6 @@ trainingData.images[trainingData.images.length - 1].onload = function () {
 				return decoder.model.predict(
 					// Create an encoded (low-dimensional) representation of the input data
 					encoder.model.predict(
-						// Create a tensor from the array of pixel values for the randomly selected input image
 						tf.tensor(
 							[trainingData.pixels[index]]
 						)
@@ -218,39 +201,30 @@ trainingData.images[trainingData.images.length - 1].onload = function () {
 					)
 				)
 				.mul(pixelMul)
-				// Clip pixel values to a 0 - 1 (float32) range
 				.clipByValue(0, 1)
-				// Reshape the output tensor into an image format (w * l * 3)
 				.reshape(
 					[imageSize, imageSize, 3]
 				)
 			}
 		);
 
-		// Display the output tensor on the output canvas, then dispose the output tensor
 		tf.toPixels(output, canvas.output).then(() => output.dispose());
 
-		// Display randomly generated images on thumbnail canvases
-		// Loop through each canvas
 		for (var i = 0; i < canvases.length; i ++) {
 			const output_ =
-			// Wrap output calculation in a tf.tidy() to remove intermediate tensors after the calculation is complete
 			tf.tidy(
 				() => {
 					return decoder.model.predict(canvases[i].variables)
 					.mul(pixelMul)
 					.clipByValue(0, 1)
-					// Reshape the output tensor into an image format (w * l * 3)
 					.reshape(
 						[imageSize, imageSize, 3]
 					);
 				}
 			);
-			//
 			tf.toPixels(output_, canvases[i].canvas).then(() => output_.dispose());
 		}
 	}
-	// Set an interval of 100 milliseconds to repeat the train() function
 	var interval = window.setInterval(train, 100);
 }
 for (var i = 0; i < numTrainingImages; i ++) {
