@@ -309,6 +309,7 @@ trainingData.images[trainingData.images.length - 1].onload = function () {
 		// Display randomly generated images on thumbnail canvases
 		// Loop through each canvas
 		for (var i = 0; i < canvases.length; i ++) {
+			// Calculate decoder output from randomly generated latent variables
 			const output_ =
 			// Wrap output calculation in a tf.tidy() to remove intermediate tensors after the calculation is complete
 			tf.tidy(
