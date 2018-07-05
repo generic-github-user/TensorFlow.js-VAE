@@ -296,7 +296,7 @@ trainingData.images[trainingData.images.length - 1].onload = function () {
 				.mul(pixelMul)
 				// Clip pixel values to a 0 - 1 (float32) range
 				.clipByValue(0, 1)
-				// Reshape the output tensor into an image format (w * l * 3)
+				// Reshape the output tensor into an image format (W * L * 3)
 				.reshape(
 					[imageSize, imageSize, 3]
 				)
@@ -320,7 +320,7 @@ trainingData.images[trainingData.images.length - 1].onload = function () {
 					.mul(pixelMul)
 					// Clip pixel values to a 0 - 1 (float32) range
 					.clipByValue(0, 1)
-					// Reshape the output tensor into an image format (w * l * 3)
+					// Reshape the output tensor into an image format (W * L * 3)
 					.reshape(
 						[imageSize, imageSize, 3]
 					);
