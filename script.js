@@ -337,5 +337,5 @@ trainingData.images[trainingData.images.length - 1].onload = function () {
 // Loop through each image element
 for (var i = 0; i < numTrainingImages; i ++) {
 	// Set the corresponding source for the image
-	trainingData.images[i].src = "./Training Data/Characters/" + (i + 1) + ".png";
+	trainingData.images[i].src = "./training-data/characters/" + (i + 1) + ".png";
 }
